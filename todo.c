@@ -6,53 +6,61 @@
 #include <time.h>
 #include "./todo_task.c"
 
+void free_pointer_arr(void ** arr, size_t size){
+    for (size_t i = 0; i < size; i++)
+        free(arr[i]);
+}
 
-//#define WINDOWS
-//#ifdef WINDOWS
-//#include <sysinfoapi.h>
-//void init_local_time(){
-//    ctime
-//}
-//#endif
+#define SUB_TASKS_COUNT 24
+
+int main(void)
+{
+    time_t task_time = time_add_days(time_utc_now(), 100);
+    Todo project;
+    errno_t err = todo_task_s(&project, "Build todo cli tool", NULL, task_time);
+    if(err){
+        printf("error creating project.\n");
+        exit(err);
+    }
+    char *task_names[SUB_TASKS_COUNT];
+    for (size_t i = 0; i < SUB_TASKS_COUNT; i++)
+    {
+        task_names[i] = malloc(sizeof(char) * 100);
+        sprintf_s(task_names[i], sizeof(char) * 100, "Sub Task num %d", i + 1);
+        time_t sub_task_time = time_add_days(time_utc_now(), 1 + i);
+        Todo sub_task;
+        todo_task_s(&sub_task, task_names[i], NULL, sub_task_time);
+        if (i%3 == 0)
+        {
+            sub_task.completed = true;   
+        }
+
+        if(i%6 == 0)
+        {
+            sub_task.etc = 0;
+        }
+
+        todo_task_add_sub_task(&project, sub_task);
+    }
+    
+    print_todo_task(&project, 0);
 
 
-int main(void){
-
+    free_pointer_arr((void**)task_names, SUB_TASKS_COUNT);
+    todo_task_free(&project);
     return 0;
 }
 
-//int main(int argc, char *argv[])
+// int main(int argc, char *argv[])
 //{
-//    time_t task_time = time_add_days(time_utc_now(), 100);
-//    Todo_Task project = todo_task("Build todo cli tool", NULL, task_time);
 //
-//    char *task_names[5];
-//    for (size_t i = 0; i < 5; i++)
-//    {
-//        task_names[i] = malloc(sizeof(char) * 100);
 //
-//        sprintf_s(task_names[i], sizeof(char) * 100, "Sub Task num %d", i + 1);
+//     print_todo_task(&project, 0);
 //
-//        time_t sub_task_time = time_add_days(time_utc_now(), 1 + i);
-//        Todo_Task sub_task = todo_task(task_names[i], NULL, sub_task_time);
 //
-//        if(i == 2)
-//        {
-//            sub_task.completed = true;
-//        }
 //
-//        todo_task_add_sub_task(&project, sub_task);
-//    }
-//
-//    print_todo_task(&project, 0);
-//
-//    for (size_t i = 0; i < 5; i++)
-//        free(task_names[i]);
-//
-//    todo_task_free(&project);
-//
-//    return 0;
-//}
+//     return 0;
+// }
 
 // typedef struct cmd_struct {
 //     const char *cmd;
